@@ -1,0 +1,200 @@
+{
+    "services": {
+        "identity": {
+            "passport": {
+                "name": "Kenyan Passport",
+                "description": "Travel document issued to Kenyan citizens.",
+                "authority": "Directorate of Immigration Services",
+                "requirements": {
+                    "new": [
+                        {
+                            "name": "Original National ID Card",
+                            "mandatory": true,
+                            "notes": "Copy also required"
+                        },
+                        {
+                            "name": "Original Birth Certificate",
+                            "mandatory": true,
+                            "notes": "Copy also required"
+                        },
+                        {
+                            "name": "Recommender's ID Card Copy",
+                            "mandatory": true,
+                            "notes": ""
+                        },
+                        {
+                            "name": "Parents' National ID Cards Copies",
+                            "mandatory": true,
+                            "notes": ""
+                        },
+                        {
+                            "name": "Passport Photos",
+                            "mandatory": true,
+                            "notes": "taken at application center"
+                        }
+                    ],
+                    "renewal": [
+                        {
+                            "name": "Current Passport",
+                            "mandatory": true,
+                            "notes": "Original"
+                        },
+                        {
+                            "name": "Original National ID Card",
+                            "mandatory": true,
+                            "notes": "Copy also required"
+                        }
+                    ],
+                    "replacement": [
+                        {
+                            "name": "Police Abstract",
+                            "mandatory": true,
+                            "notes": "For lost passport"
+                        },
+                        {
+                            "name": "Affidavit",
+                            "mandatory": true,
+                            "notes": "Explaining circumstances of loss"
+                        },
+                        {
+                            "name": "Original National ID Card",
+                            "mandatory": true,
+                            "notes": ""
+                        }
+                    ]
+                },
+                "fees": {
+                    "32_pages": 4500,
+                    "50_pages": 6000,
+                    "66_pages": 7500,
+                    "diplomatic": 7500,
+                    "mutilated": 10000,
+                    "lost": 12000
+                },
+                "processing_time": {
+                    "standard_days": 14,
+                    "urgent_days": 3
+                },
+                "eligibility": {
+                    "citizenship": [
+                        "kenyan_citizen"
+                    ],
+                    "min_age": 0
+                }
+            },
+            "national_id": {
+                "name": "National Identity Card",
+                "description": "Primary identification document for Kenyan citizens over 18.",
+                "authority": "National Registration Bureau",
+                "requirements": {
+                    "first_time": [
+                        {
+                            "name": "Original Birth Certificate",
+                            "mandatory": true,
+                            "notes": "Copy also required"
+                        },
+                        {
+                            "name": "Parents' National ID Cards Copies",
+                            "mandatory": true,
+                            "notes": ""
+                        }
+                    ]
+                },
+                "fees": {
+                    "first_time": 0,
+                    "replacement": 100
+                },
+                "processing_time": {
+                    "standard_days": 30
+                },
+                "eligibility": {
+                    "citizenship": [
+                        "kenyan_citizen"
+                    ],
+                    "min_age": 18
+                }
+            }
+        },
+        "transport": {
+            "driving_license": {
+                "name": "Driving License",
+                "description": "Document authorizing operation of a motor vehicle.",
+                "authority": "NTSA",
+                "requirements": {
+                    "renewal": [
+                        {
+                            "name": "Expired Driving License",
+                            "mandatory": true,
+                            "notes": ""
+                        },
+                        {
+                            "name": "National ID",
+                            "mandatory": true,
+                            "notes": ""
+                        }
+                    ]
+                },
+                "fees": {
+                    "1_year": 600,
+                    "3_years": 1400
+                },
+                "processing_time": {
+                    "standard_days": 1
+                },
+                "eligibility": {
+                    "citizenship": [
+                        "kenyan_citizen",
+                        "resident"
+                    ],
+                    "min_age": 18
+                }
+            }
+        }
+    },
+    "locations": {
+        "nairobi": {
+            "huduma": [
+                {
+                    "name": "Huduma Centre GPO",
+                    "address": "Teleposta Towers, Nairobi",
+                    "walk_in": true
+                },
+                {
+                    "name": "Huduma Centre City Square",
+                    "address": "Haile Selassie Ave, Nairobi",
+                    "walk_in": true
+                },
+                {
+                    "name": "Huduma Centre Kibra",
+                    "address": "Kibra, Nairobi",
+                    "walk_in": true
+                }
+            ],
+            "immigration": [
+                {
+                    "name": "Nyayo House",
+                    "address": "Kenyatta Avenue, Nairobi",
+                    "walk_in": false
+                }
+            ]
+        },
+        "mombasa": {
+            "huduma": [
+                {
+                    "name": "Huduma Centre Mombasa",
+                    "address": "GPO Building, Mombasa",
+                    "walk_in": true
+                }
+            ]
+        },
+        "kisumu": {
+            "huduma": [
+                {
+                    "name": "Huduma Centre Kisumu",
+                    "address": "Prosperity House, Kisumu",
+                    "walk_in": true
+                }
+            ]
+        }
+    }
+}
