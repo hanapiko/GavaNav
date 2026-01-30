@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import {
     Send,
     Menu,
@@ -9,6 +9,8 @@ import {
     ChevronRight,
     Sparkles,
     Building2,
+    Trash2,
+    X,
 } from 'lucide-react';
 import ChatBubble from '@/components/ChatBubble';
 import { ChecklistItem } from '@/components/Checklist';
@@ -22,11 +24,12 @@ interface Message {
     timestamp: Date;
 }
 
-interface RecentSearch {
+interface Session {
     id: string;
     title: string;
     preview: string;
-    timestamp: Date;
+    createdAt: string;
+    updatedAt: string;
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
@@ -36,30 +39,22 @@ export default function Home() {
     const [inputValue, setInputValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(true);
-    const [userId] = useState(() => `user-${Date.now()}`);
+    const [userId] = useState(() => {
+        // Try to get existing userId from localStorage, or create new one
+        if (typeof window !== 'undefined') {
+            const stored = localStorage.getItem('gavanav-userId');
+            if (stored) return stored;
+            const newId = `user-${Date.now()}`;
+            localStorage.setItem('gavanav-userId', newId);
+            return newId;
+        }
+        return `user-${Date.now()}`;
+    });
+    const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+    const [sessions, setSessions] = useState<Session[]>([]);
+    const [sessionsLoading, setSessionsLoading] = useState(true);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
-
-    const [recentSearches] = useState<RecentSearch[]>([
-        {
-            id: '1',
-            title: 'Passport Renewal',
-            preview: 'How to renew my passport...',
-            timestamp: new Date(Date.now() - 86400000),
-        },
-        {
-            id: '2',
-            title: 'Tax Filing Help',
-            preview: 'What documents do I need...',
-            timestamp: new Date(Date.now() - 172800000),
-        },
-        {
-            id: '3',
-            title: 'Driver License',
-            preview: 'Steps to get a new license...',
-            timestamp: new Date(Date.now() - 259200000),
-        },
-    ]);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -68,6 +63,97 @@ export default function Home() {
     useEffect(() => {
         scrollToBottom();
     }, [messages]);
+
+    // Fetch sessions on mount
+    const fetchSessions = useCallback(async () => {
+        try {
+            setSessionsLoading(true);
+            const response = await fetch(`${API_URL}/sessions?userId=${userId}`);
+            if (response.ok) {
+                const data = await response.json();
+                setSessions(data);
+            }
+        } catch (error) {
+            console.error('Failed to fetch sessions:', error);
+        } finally {
+            setSessionsLoading(false);
+        }
+    }, [userId]);
+
+    useEffect(() => {
+        fetchSessions();
+    }, [fetchSessions]);
+
+    // Load session messages
+    const loadSession = async (sessionId: string) => {
+        try {
+            setIsLoading(true);
+            const response = await fetch(`${API_URL}/sessions/${sessionId}/messages`);
+            if (response.ok) {
+                const data = await response.json();
+                const loadedMessages: Message[] = data.map((msg: {
+                    id: string;
+                    role: 'user' | 'assistant';
+                    content: string;
+                    metadata?: string;
+                    createdAt: string;
+                }) => {
+                    let checklist: ChecklistItem[] | undefined;
+                    let explanation: string | undefined;
+
+                    if (msg.metadata) {
+                        try {
+                            const parsed = JSON.parse(msg.metadata);
+                            checklist = parsed.checklist;
+                            explanation = parsed.explanation;
+                        } catch {
+                            // Ignore parse errors
+                        }
+                    }
+
+                    return {
+                        id: msg.id,
+                        role: msg.role,
+                        content: msg.content,
+                        checklist,
+                        explanation,
+                        timestamp: new Date(msg.createdAt),
+                    };
+                });
+                setMessages(loadedMessages);
+                setCurrentSessionId(sessionId);
+            }
+        } catch (error) {
+            console.error('Failed to load session:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Start new chat
+    const startNewChat = () => {
+        setMessages([]);
+        setCurrentSessionId(null);
+        inputRef.current?.focus();
+    };
+
+    // Delete session
+    const deleteSession = async (sessionId: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        try {
+            const response = await fetch(`${API_URL}/sessions/${sessionId}`, {
+                method: 'DELETE',
+            });
+            if (response.ok) {
+                setSessions(prev => prev.filter(s => s.id !== sessionId));
+                if (currentSessionId === sessionId) {
+                    startNewChat();
+                }
+            }
+        } catch (error) {
+            console.error('Failed to delete session:', error);
+        }
+    };
 
     const handleSendMessage = async () => {
         if (!inputValue.trim() || isLoading) return;
@@ -92,6 +178,7 @@ export default function Home() {
                 body: JSON.stringify({
                     message: userMessage.content,
                     userId,
+                    sessionId: currentSessionId,
                 }),
             });
 
@@ -100,6 +187,13 @@ export default function Home() {
             }
 
             const data = await response.json();
+
+            // If this was a new chat, update the session ID
+            if (!currentSessionId && data.sessionId) {
+                setCurrentSessionId(data.sessionId);
+                // Refresh sessions to show the new one
+                fetchSessions();
+            }
 
             const assistantMessage: Message = {
                 id: `msg-${Date.now()}-assistant`,
@@ -133,6 +227,9 @@ export default function Home() {
         }
     };
 
+    // Get current session title
+    const currentSession = sessions.find(s => s.id === currentSessionId);
+
     return (
         <div className="flex h-screen bg-dark-300">
             {/* Sidebar */}
@@ -143,7 +240,10 @@ export default function Home() {
                 <div className="h-full w-72 glass border-r border-slate-700/50 flex flex-col">
                     {/* Sidebar Header */}
                     <div className="p-4 border-b border-slate-700/50">
-                        <button className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-500 hover:to-primary-400 rounded-xl text-white font-medium transition-all duration-200 shadow-lg shadow-primary-500/20 hover:shadow-primary-500/40">
+                        <button
+                            onClick={startNewChat}
+                            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-500 hover:to-primary-400 rounded-xl text-white font-medium transition-all duration-200 shadow-lg shadow-primary-500/20 hover:shadow-primary-500/40"
+                        >
                             <Plus size={20} />
                             New Chat
                         </button>
@@ -152,35 +252,66 @@ export default function Home() {
                     {/* Recent Searches */}
                     <div className="flex-1 overflow-y-auto p-4">
                         <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
-                            Recent Searches
+                            Recent Conversations
                         </h3>
-                        <div className="space-y-2">
-                            {recentSearches.map((search) => (
-                                <button
-                                    key={search.id}
-                                    className="w-full text-left p-3 rounded-lg hover:bg-slate-700/50 transition-colors group"
-                                >
-                                    <div className="flex items-start gap-3">
-                                        <MessageSquare
-                                            size={18}
-                                            className="text-slate-400 mt-0.5 flex-shrink-0"
-                                        />
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-medium text-slate-200 truncate">
-                                                {search.title}
-                                            </p>
-                                            <p className="text-xs text-slate-500 truncate mt-0.5">
-                                                {search.preview}
-                                            </p>
+                        {sessionsLoading ? (
+                            <div className="flex items-center justify-center py-8">
+                                <div className="w-6 h-6 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
+                            </div>
+                        ) : sessions.length === 0 ? (
+                            <p className="text-sm text-slate-500 text-center py-4">
+                                No conversations yet. Start a new chat!
+                            </p>
+                        ) : (
+                            <div className="space-y-2">
+                                {sessions.map((session) => (
+                                    <button
+                                        key={session.id}
+                                        onClick={() => loadSession(session.id)}
+                                        className={`w-full text-left p-3 rounded-lg transition-colors group relative ${currentSessionId === session.id
+                                                ? 'bg-primary-500/20 border border-primary-500/30'
+                                                : 'hover:bg-slate-700/50'
+                                            }`}
+                                    >
+                                        <div className="flex items-start gap-3">
+                                            <MessageSquare
+                                                size={18}
+                                                className={`mt-0.5 flex-shrink-0 ${currentSessionId === session.id
+                                                        ? 'text-primary-400'
+                                                        : 'text-slate-400'
+                                                    }`}
+                                            />
+                                            <div className="flex-1 min-w-0 pr-6">
+                                                <p className={`text-sm font-medium truncate ${currentSessionId === session.id
+                                                        ? 'text-primary-300'
+                                                        : 'text-slate-200'
+                                                    }`}>
+                                                    {session.title || 'New Chat'}
+                                                </p>
+                                                <p className="text-xs text-slate-500 truncate mt-0.5">
+                                                    {session.preview}
+                                                </p>
+                                            </div>
+                                            <ChevronRight
+                                                size={16}
+                                                className={`text-slate-500 absolute right-3 top-1/2 -translate-y-1/2 transition-opacity ${currentSessionId === session.id
+                                                        ? 'opacity-100'
+                                                        : 'opacity-0 group-hover:opacity-100'
+                                                    }`}
+                                            />
                                         </div>
-                                        <ChevronRight
-                                            size={16}
-                                            className="text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                                        />
-                                    </div>
-                                </button>
-                            ))}
-                        </div>
+                                        {/* Delete button */}
+                                        <button
+                                            onClick={(e) => deleteSession(session.id, e)}
+                                            className="absolute right-2 top-2 p-1 rounded-md opacity-0 group-hover:opacity-100 hover:bg-red-500/20 transition-all"
+                                            title="Delete conversation"
+                                        >
+                                            <X size={14} className="text-red-400" />
+                                        </button>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
                     {/* Sidebar Footer */}
@@ -215,9 +346,11 @@ export default function Home() {
                             <Building2 size={22} className="text-white" />
                         </div>
                         <div>
-                            <h1 className="text-lg font-semibold text-white">GavaNav</h1>
+                            <h1 className="text-lg font-semibold text-white">
+                                {currentSession?.title || 'GavaNav'}
+                            </h1>
                             <p className="text-xs text-slate-400">
-                                Government Service Assistant
+                                {currentSession ? 'Chat Session' : 'Government Service Assistant'}
                             </p>
                         </div>
                     </div>
@@ -234,8 +367,8 @@ export default function Home() {
                                 Welcome to GavaNav
                             </h2>
                             <p className="text-slate-400 max-w-md mb-8">
-                                Your AI-powered assistant for navigating government services.
-                                Ask me about permits, licenses, tax filings, and more.
+                                Your AI-powered assistant for navigating Kenyan government services.
+                                Ask me about passports, IDs, tax filing, licenses, and more.
                             </p>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-2xl w-full">
                                 {[
@@ -243,6 +376,8 @@ export default function Home() {
                                     'What documents do I need for tax filing?',
                                     "How to apply for a driver's license?",
                                     'Steps to register a new business',
+                                    'How to get a National ID?',
+                                    'Where is the nearest Huduma Centre?',
                                 ].map((suggestion, i) => (
                                     <button
                                         key={i}
