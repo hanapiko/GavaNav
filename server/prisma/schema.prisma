@@ -19,23 +19,27 @@ model User {
 }
 
 model ChatMessage {
-  id        String   @id @default(uuid())
-  role      String   // "user" or "assistant"
+  id        String       @id @default(uuid())
+  role      String       // "user" or "assistant"
   content   String
-  metadata  Json?    // For checklists, structured data
+  metadata  String?      // For checklists, structured data (stored as JSON string)
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessionId String?
+  session   ChatSession? @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  createdAt DateTime     @default(now())
 
   @@index([userId])
+  @@index([sessionId])
 }
 
 model ChatSession {
-  id        String   @id @default(uuid())
+  id        String        @id @default(uuid())
   title     String?
   userId    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  messages  ChatMessage[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 
   @@index([userId])
 }
