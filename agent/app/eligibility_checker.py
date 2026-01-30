@@ -1,6 +1,6 @@
 from typing import Dict, Any, List
-from ..core.state import AgentState
-from ..core.models import Eligibility
+from .state import AgentState
+from .models import Eligibility
 
 class EligibilityCheckerNode:
     def __call__(self, state: AgentState) -> Dict[str, Any]:
@@ -17,7 +17,7 @@ class EligibilityCheckerNode:
         
         reasons = []
         status = "eligible"
-        
+
         # Check Citizenship
         allowed_citizenship = rules.get("citizenship", [])
         if profile.citizenship_status not in allowed_citizenship:

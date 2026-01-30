@@ -1,6 +1,6 @@
 from typing import Dict, Any, List
-from ..core.state import AgentState
-from ..core.models import RequiredDocument
+from .state import AgentState
+from .models import RequiredDocument
 
 class RequirementCheckerNode:
     def __call__(self, state: AgentState) -> Dict[str, Any]:

@@ -25,9 +25,12 @@ class GavaNavAgent:
         # Define edges
         self.workflow.set_entry_point("guardrail")
         
-        # Conditional edge: If guardrail fails, stop? 
-        # For now, we assume happy path or error propagation via state
-        self.workflow.add_edge("guardrail", "intent")
+        # Conditional edge: If guardrail fails, stop.
+        self.workflow.add_conditional_edges(
+            "guardrail", 
+            lambda s: END if s.get("error") else "intent"
+        )
+        
         self.workflow.add_edge("intent", "knowledge")
         self.workflow.add_edge("knowledge", "location")
         self.workflow.add_edge("location", "eligibility")

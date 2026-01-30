@@ -1,6 +1,6 @@
 from typing import Dict, Any
-from ..core.state import AgentState
-from ..core.models import AgentInput
+from .state import AgentState
+from .models import AgentInput
 
 class GuardrailCheckerNode:
     def __call__(self, state: AgentState) -> Dict[str, Any]:
@@ -21,7 +21,6 @@ class GuardrailCheckerNode:
         try:
             if not isinstance(input_data, AgentInput):
                 # This re-validation ensures strict adherence even if passed as dict
-                # Note: This might raise a ValidationError if it's not valid
                 validated_input = AgentInput(**input_data)
                 # We return the validated input model to ensure downstream nodes use the model
                 return {"input_data": validated_input, "error": None}

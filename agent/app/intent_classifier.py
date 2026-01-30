@@ -1,5 +1,5 @@
 from typing import Dict, Any
-from ..core.state import AgentState
+from .state import AgentState
 
 class IntentClassifierNode:
     def __call__(self, state: AgentState) -> Dict[str, Any]:

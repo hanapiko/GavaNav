@@ -1,8 +1,8 @@
 import json
 import os
 from typing import Dict, Any, Optional
-from ..core.state import AgentState
-from ..core.models import AgentInput, ServiceSummary, CostInformation, ProcessingTime
+from .state import AgentState
+from .models import AgentInput, ServiceSummary, CostInformation, ProcessingTime
 
 class KnowledgeCheckerNode:
     def __init__(self):
@@ -52,11 +52,7 @@ class KnowledgeCheckerNode:
         )
         
         # Cost
-        # Handle different fee structures. Simplified logic: take the first fee or average
         fees_dict = service_data.get("fees", {})
-        # Just grabbing the first value for simplicity or logic based on application_type if available
-        # But fee structure in JSON varies.
-        # Let's try to find a fee that matches application_type if possible, else default
         fee_amount = 0.0
         app_type = input_data.user_profile.application_type
         

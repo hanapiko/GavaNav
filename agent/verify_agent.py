@@ -1,7 +1,6 @@
 import sys
 import os
 import json
-from rich import print as rprint
 
 # Add current dir to path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -46,12 +45,12 @@ def test_agent():
     err = result.get("error")
     
     if err:
-        rprint(f"[bold red]Error:[/bold red] {err}")
+        print(f"Error: {err}")
     elif final:
-        rprint("[bold green]Success![/bold green]")
+        print("Success!")
         print(json.dumps(final, indent=2))
     else:
-        rprint("[bold yellow]No response and no error?[/bold yellow]")
+        print("No response and no error?")
         print(result)
 
 if __name__ == "__main__":

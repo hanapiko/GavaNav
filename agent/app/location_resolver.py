@@ -1,8 +1,8 @@
 import json
 import os
 from typing import Dict, Any, List
-from ..core.state import AgentState
-from ..core.models import ServiceLocation, PrimaryOffice
+from .state import AgentState
+from .models import ServiceLocation, PrimaryOffice
 
 class LocationResolverNode:
     def __init__(self):

@@ -14,6 +14,8 @@ async def run_agent(input_data: AgentInput):
         # Initialize state with input
         initial_state = {
             "input_data": input_data,
+            "required_documents": []
+
             # Initialize other keys to None/Empty to satisfy TypedDict if needed 
             # (TypedDict usually doesn't enforce all keys at init if partial=False, but StateGraph handles it)
         }
