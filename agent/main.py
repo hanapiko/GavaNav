@@ -1,37 +1,14 @@
 from fastapi import FastAPI
-from pydantic import BaseModel
-from graph.workflow import build_workflow
+from app.routes import router
 
-app = FastAPI()
-agent = build_workflow()
+app = FastAPI(
+    title="GavaNav Agent",
+    description="Kenyan Government Services AI Agent",
+    version="1.0.0"
+)
 
+app.include_router(router, prefix="/api/v1")
 
-class ChatRequest(BaseModel):
-    user_id: str
-    message: str
-
-
-@app.post("/chat")
-async def chat(req: ChatRequest):
-    initial_state = {
-        "user_message": req.message,
-        "detected_intent": "",
-        "detected_service": "",
-        "detected_location": None,
-        "service_rules": {},
-        "steps": [],
-        "explanation": "",
-        "confidence_score": 0.0,
-        "metadata": {},
-    }
-
-    result = agent.invoke(initial_state)
-
-    return {
-        "intent": result["detected_intent"],
-        "service_name": result["detected_service"],
-        "steps": result["steps"],
-        "explanation": result["explanation"],
-        "confidence_score": result["confidence_score"],
-        "metadata": result["metadata"],
-    }
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
