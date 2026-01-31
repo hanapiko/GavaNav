@@ -42,20 +42,22 @@ class ResponseBuilderNode:
 
             # ---------- 2. AI Guidance ----------
             sg = state.get("service_guidance")
+            llm_guide = state.get("llm_guidance") or {}
+            
             ai_guidance = AIGuidance(
-                summary_explanation=f"Analyzed {sg.service_name if sg else 'request'} against official rules.",
-                common_mistakes=["Missing photocopies", "Wrong office"],
-                tips_for_faster_processing=["Arrive early", "Pay online"],
-                reasoning_explanation=state.get("reasoning_explanation", "Standard processing applied.")
+                summary_explanation=llm_guide.get("chat_response") or f"Analyzed {sg.service_name if sg else 'request'} against official rules.",
+                common_mistakes=llm_guide.get("common_mistakes") or ["Incomplete documentation", "Wrong office location"],
+                tips_for_faster_processing=llm_guide.get("tips") or ["Arrive before 9 AM", "Ensure all photocopies are ready"],
+                reasoning_explanation=state.get("reasoning_explanation", "Standard rule-based check applied.")
             )
 
             # ---------- 3. Decision Explanation ----------
             decision_explanation = DecisionExplanation(
-                rule_sources=["Government KB"],
-                rules_applied=[f"Status: {state['input_data'].user_profile.citizenship_status}"],
-                assumptions=["Accurate data"],
-                limitations=["System downtime"],
-                validation_logic=state.get("validation_logic", "Internal rule parity check pass.")
+                rule_sources=["Government Knowledge Base 2024", "eCitizen Portal Statistics"],
+                rules_applied=[f"Status: {state['input_data'].user_profile.citizenship_status}", f"Service Category: {state['input_data'].service_request.service_category}"],
+                assumptions=["Applicant provided truthful information", "System uptime at government portals"],
+                limitations=["Real-time queue length not available", "Final decision rests with the authority officer"],
+                validation_logic=state.get("validation_logic", "Internal cross-referencing logic applied.")
             )
 
             # ---------- 4. Final Response ----------
