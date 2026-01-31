@@ -1,9 +1,12 @@
-fastapi
-uvicorn
-pydantic>=2.0.0
-langgraph
-langchain
-langchain-core
-langchain-openai
-python-dotenv
-requests
+fastapi==0.109.0
+uvicorn==0.27.0
+pydantic==2.5.3
+langgraph==0.0.24
+langchain-openai==0.0.2
+python-dotenv==1.0.0
+pytest==8.0.0
+httpx==0.26.0
+# Core dependencies for LangChain/OpenAI/FastAPI
+typing_extensions==4.15.0
+pydantic_core==2.14.6
+starlette==0.35.1
