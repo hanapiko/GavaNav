@@ -16,26 +16,69 @@ class KnowledgeCheckerNode:
             print(f"Error loading knowledge base: {e}")
             self.knowledge_base = {"services": {}, "locations": {}}
 
-    def _fuzzy_match_service(self, category: str, name: str) -> Optional[Dict[str, Any]]:
-        services = self.knowledge_base.get("services", {}).get(category, {})
-        # Direct match first
-        if name in services:
-            return services[name]
+    def _normalize(self, s: str) -> str:
+        import re
+        if not s: return ""
+        # Remove anything that isn't alphanumeric
+        return re.sub(r'[^a-zA-Z0-9]', '', s.lower())
+
+    def _fuzzy_match_service(self, category: str, name: str, query: Optional[str] = None) -> Optional[Dict[str, Any]]:
+        all_services = self.knowledge_base.get("services", {})
+        category_services = all_services.get(category, {})
         
-        # Simple substring match
-        for key, data in services.items():
-            if name.lower() in key.lower() or key.lower() in name.lower() or name.lower() in data.get("name", "").lower():
+        name_norm = self._normalize(name)
+        print(f"DEBUG: Matching info - Category: {category}, Name: '{name}', Normalized Name: '{name_norm}'")
+        
+        # 1. Try direct/normalized match in the specified category
+        for key, data in category_services.items():
+            key_norm = self._normalize(key)
+            val_norm = self._normalize(data.get("name", ""))
+            print(f"DEBUG: Checking against Key: '{key}' ({key_norm}), Val: '{data.get('name')}' ({val_norm})")
+            
+            if name_norm in key_norm or key_norm in name_norm or name_norm in val_norm or val_norm in name_norm:
+                print(f"DEBUG: Match FOUND in Category!")
                 return data
+        
+        # 2. If user_query is provided, try matching normalized words
+        if query:
+            q_norm = self._normalize(query)
+            for cat, svcs in all_services.items():
+                for key, data in svcs.items():
+                    key_norm = self._normalize(key)
+                    val_norm = self._normalize(data.get("name", ""))
+                    if key_norm in q_norm or val_norm in q_norm or q_norm in val_norm:
+                        print(f"Match found for query '{query}' in category '{cat}': {data.get('name')}")
+                        return data
+
+        # 3. Fallback: Search ALL categories
+        for cat, svcs in all_services.items():
+            if cat == category: continue
+            for key, data in svcs.items():
+                key_norm = self._normalize(key)
+                val_norm = self._normalize(data.get("name", ""))
+                if name_norm in key_norm or key_norm in name_norm or name_norm in val_norm or val_norm in name_norm:
+                    return data
+                    
         return None
 
     def __call__(self, state: AgentState) -> Dict[str, Any]:
+        if state.get("error"):
+            return state
         print("--- KNOWLEDGE CHECK ---")
         input_data: AgentInput = state["input_data"]
         request = input_data.service_request
         
-        service_data = self._fuzzy_match_service(request.service_category, request.service_name)
+        service_data = self._fuzzy_match_service(
+            request.service_category, 
+            request.service_name, 
+            state.get("user_query")
+        )
         
         if not service_data:
+            print(f"Service '{request.service_name}' not found in KB.")
+            # If we have a user query, we continue to give the LLM a chance
+            if state.get("user_query"):
+                 return {"service_data": None, "error": None}
             return {"error": f"Service '{request.service_name}' in category '{request.service_category}' not found."}
 
         # Simulate 2nd Source API (e.g. NTSA)

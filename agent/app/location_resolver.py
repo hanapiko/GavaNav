@@ -16,6 +16,8 @@ class LocationResolverNode:
             self.kb = {}
 
     def __call__(self, state: AgentState) -> Dict[str, Any]:
+        if state.get("error"):
+            return state
         print("--- LOCATION RESOLVER ---")
         input_data = state["input_data"]
         county = input_data.user_profile.county.lower()

@@ -4,10 +4,12 @@ from .models import Eligibility
 
 class EligibilityCheckerNode:
     def __call__(self, state: AgentState) -> Dict[str, Any]:
+        if state.get("error"):
+            return state
         print("--- ELIGIBILITY CHECK ---")
         input_data = state["input_data"]
         profile = input_data.user_profile
-        service_data = state.get("service_data", {})
+        service_data = state.get("service_data") or {}
         
         # Default rules if missing
         rules = service_data.get("eligibility", {

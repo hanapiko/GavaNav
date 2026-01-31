@@ -12,7 +12,8 @@ class UserProfile(BaseModel):
     application_type: Literal["first_time", "renewal", "replacement"]
 
 class ServiceRequest(BaseModel):
-    service_category: Literal["identity", "health", "transport", "social_services", "education"]
+    # Expanded category list to match frontend and future services
+    service_category: str = Field(..., description="Category of the service (e.g., identity, transport, health, civil_registration, etc.)")
     service_name: str = Field(..., description="Specific name of the service")
     urgency_level: Literal["normal", "urgent"]
 
@@ -25,13 +26,7 @@ class AgentInput(BaseModel):
     user_profile: UserProfile
     service_request: ServiceRequest
     session_context: SessionContext
-
-    @validator("session_context")
-    def validate_timestamp(cls, v):
-        # Basic validation to ensure ISO format if needed, 
-        # but pydantic can handle datetime parsing if we changed type to datetime.
-        # Keeping as string per contract, but good to know.
-        return v
+    user_query: Optional[str] = Field(None, description="Free-text user query or follow-up question")
 
 # --- OUTPUT MODELS ---
 
@@ -71,25 +66,31 @@ class Eligibility(BaseModel):
     next_steps_if_ineligible: List[str]
 
 class ApplicationProcess(BaseModel):
-    steps: List[Dict[str, Any]]  # Expected format: { "step_number": 1, "instruction": "string" }
+    steps: List[Dict[str, Any]]
 
 class AIGuidance(BaseModel):
     summary_explanation: str
     common_mistakes: List[str]
     tips_for_faster_processing: List[str]
+    # New field for LLM provided guidance
+    reasoning_explanation: Optional[str] = None 
 
 class DecisionExplanation(BaseModel):
     rule_sources: List[str]
     rules_applied: List[str]
     assumptions: List[str]
     limitations: List[str]
+    # New field for how the decision was validated
+    validation_logic: Optional[str] = None
 
 class AgentResponse(BaseModel):
-    service_guidance: Dict[str, ServiceSummary] # Key: service_summary
-    location_resolution: Dict[str, ServiceLocation] # Key: service_location
-    cost_and_time: Dict[str, Any] # Keys: cost_information, processing_time
-    requirements_and_eligibility: Dict[str, Any] # Keys: required_documents, eligibility
-    application_steps: Dict[str, ApplicationProcess] # Key: application_process
-    ai_guidance: Dict[str, AIGuidance] # Key: ai_guidance
-    explainability: Dict[str, DecisionExplanation] # Key: decision_explanation
+    service_guidance: Dict[str, ServiceSummary]
+    location_resolution: Dict[str, ServiceLocation]
+    cost_and_time: Dict[str, Any]
+    requirements_and_eligibility: Dict[str, Any]
+    application_steps: Dict[str, ApplicationProcess]
+    ai_guidance: Dict[str, AIGuidance]
+    explainability: Dict[str, DecisionExplanation]
     follow_up_prompt: str
+    chat_response: Optional[str] = None
+    confidence_score: float = Field(default=1.0, ge=0.0, le=1.0)

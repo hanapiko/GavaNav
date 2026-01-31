@@ -15,11 +15,13 @@ from .models import (
 class AgentState(TypedDict):
     # Input
     input_data: AgentInput
+    user_query: Optional[str]
+    chat_history: List[Dict[str, str]]
     
     # Internal Processing State
     current_step: str
     error: Optional[str]
-    service_data: Optional[Dict[str, Any]] # Raw data from knowledge base specific to the requested service
+    service_data: Optional[Dict[str, Any]]
     
     # Partial Outputs (to be built up by nodes)
     service_guidance: Optional[ServiceSummary]
@@ -31,6 +33,12 @@ class AgentState(TypedDict):
     application_process: Optional[ApplicationProcess]
     ai_guidance: Optional[AIGuidance]
     decision_explanation: Optional[DecisionExplanation]
+    # LLM Reasoning
+    reasoning_explanation: Optional[str]
+    validation_logic: Optional[str]
+    chat_response: Optional[str]
+    confidence_score: Optional[float]
+    llm_guidance: Optional[Dict[str, Any]]
     
     # Final Response
-    final_response: Optional[Dict[str, Any]] # The complete JSON response
+    final_response: Optional[Dict[str, Any]] 

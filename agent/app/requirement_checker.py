@@ -4,10 +4,12 @@ from .models import RequiredDocument
 
 class RequirementCheckerNode:
     def __call__(self, state: AgentState) -> Dict[str, Any]:
+        if state.get("error"):
+            return state
         print("--- REQUIREMENT CHECK ---")
         input_data = state["input_data"]
         app_type = input_data.user_profile.application_type
-        service_data = state.get("service_data", {})
+        service_data = state.get("service_data") or {}
         
         reqs_map = service_data.get("requirements", {})
         

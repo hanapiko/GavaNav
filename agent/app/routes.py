@@ -14,10 +14,9 @@ async def run_agent(input_data: AgentInput):
         # Initialize state with input
         initial_state = {
             "input_data": input_data,
+            "user_query": input_data.user_query,
+            "chat_history": [],
             "required_documents": []
-
-            # Initialize other keys to None/Empty to satisfy TypedDict if needed 
-            # (TypedDict usually doesn't enforce all keys at init if partial=False, but StateGraph handles it)
         }
         
         result_state = agent.invoke(initial_state)
@@ -31,8 +30,13 @@ async def run_agent(input_data: AgentInput):
             
         return final
         
+    except HTTPException as he:
+        raise he
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.get("/health")
 def health_check():
