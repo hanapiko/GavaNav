@@ -4,6 +4,7 @@ export interface ServiceRequest {
   age: string
   residency: string
   applicationType: string
+  query?: string
 }
 
 export interface DocumentItem {
@@ -66,6 +67,8 @@ export interface ServiceResult {
   }
   decisionExplanation: DecisionExplanation
   limitations: string[]
+  chatResponse?: string
+  confidenceScore: number
 }
 
 export const KENYA_COUNTIES = [

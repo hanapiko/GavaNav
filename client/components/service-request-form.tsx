@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Spinner } from "@/components/ui/spinner"
+import { Textarea } from "@/components/ui/textarea"
 import {
   KENYA_COUNTIES,
   PUBLIC_SERVICES,
@@ -35,12 +36,13 @@ export function ServiceRequestForm({ onSubmit, isLoading }: ServiceRequestFormPr
   const [age, setAge] = useState("")
   const [residency, setResidency] = useState("")
   const [applicationType, setApplicationType] = useState("")
+  const [query, setQuery] = useState("")
 
-  const isValid = county && service && age && residency && applicationType
+  const isValid = (county && service && age && residency && applicationType) || (query.length > 5)
 
   const handleSubmit = () => {
     if (!isValid) return
-    onSubmit({ county, service, age, residency, applicationType })
+    onSubmit({ county, service, age, residency, applicationType, query })
   }
 
   // Group services by category
@@ -171,6 +173,19 @@ export function ServiceRequestForm({ onSubmit, isLoading }: ServiceRequestFormPr
             </div>
           </div>
 
+          <div className="h-px bg-border" />
+
+          <div className="space-y-2">
+            <Label htmlFor="query" className="text-foreground">Specific Question or Follow-up</Label>
+            <Textarea
+              id="query"
+              placeholder="E.g. How do I get a passport for a minor? Or tell me about eligibility for NHIF."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="min-h-[100px]"
+            />
+          </div>
+
           <div className="flex items-start gap-3 rounded-lg bg-secondary p-4">
             <Info className="mt-0.5 h-4 w-4 shrink-0 text-info" />
             <p className="text-sm text-muted-foreground">
@@ -186,7 +201,7 @@ export function ServiceRequestForm({ onSubmit, isLoading }: ServiceRequestFormPr
           >
             {isLoading ? (
               <>
-                <Spinner size="sm" />
+                <Spinner className="mr-2" />
                 Processing...
               </>
             ) : (

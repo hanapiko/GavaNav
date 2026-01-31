@@ -34,11 +34,10 @@ function SourceBadge({ isAI = false }: { isAI?: boolean }) {
   return (
     <Badge
       variant="outline"
-      className={`gap-1 text-xs ${
-        isAI
+      className={`gap-1 text-xs ${isAI
           ? "border-accent/50 bg-accent/10 text-accent"
           : "border-primary/50 bg-primary/10 text-primary"
-      }`}
+        }`}
     >
       {isAI ? (
         <>
@@ -91,17 +90,38 @@ export function ServiceResults({ result, onReset }: ServiceResultsProps) {
           </h2>
           <p className="text-muted-foreground">{result.county} County</p>
         </div>
+        <div className="flex flex-col items-end gap-2">
+          <Badge variant="secondary" className="px-3 py-1">
+            Confidence: {(result.confidenceScore * 100).toFixed(0)}%
+          </Badge>
+          <SourceBadge isAI={result.confidenceScore < 0.9} />
+        </div>
       </div>
+
+      {/* Chat Response (if present) */}
+      {result.chatResponse && (
+        <Card className="border-primary/20 bg-primary/5">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <Sparkles className="mt-1 h-5 w-5 shrink-0 text-primary" />
+              <div>
+                <p className="text-sm italic text-foreground leading-relaxed">
+                  "{result.chatResponse}"
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Eligibility Status */}
       <Card
-        className={`border-2 ${
-          result.eligibility.status === "eligible"
+        className={`border-2 ${result.eligibility.status === "eligible"
             ? "border-success/50 bg-success/5"
             : result.eligibility.status === "conditionally_eligible"
               ? "border-warning/50 bg-warning/5"
               : "border-destructive/50 bg-destructive/5"
-        }`}
+          }`}
       >
         <CardContent className="flex items-start gap-4 p-4">
           {result.eligibility.status === "eligible" ? (

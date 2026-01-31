@@ -372,7 +372,7 @@ const COUNTY_OFFICES: Record<string, { huduma: string; immigration: string; ntsa
 
 function getOfficeForService(county: string, service: string): string {
   const offices = COUNTY_OFFICES[county] || COUNTY_OFFICES.Nairobi
-  
+
   if (service === "passport") return offices.immigration
   if (service === "driving-license" || service === "vehicle-registration") return offices.ntsa
   return offices.huduma
@@ -381,11 +381,11 @@ function getOfficeForService(county: string, service: string): string {
 export function getServiceDetails(request: ServiceRequest): ServiceResult {
   const baseData = SERVICE_DATA[request.service] || SERVICE_DATA["national-id"]
   const officeAddress = getOfficeForService(request.county, request.service)
-  
+
   // Determine eligibility based on request
   let eligibilityStatus: "eligible" | "conditionally_eligible" | "not_eligible" = "eligible"
   const conditions: string[] = []
-  
+
   if (request.residency === "foreign") {
     eligibilityStatus = "not_eligible"
     conditions.push("This service is only available to Kenyan citizens and residents")
@@ -393,7 +393,7 @@ export function getServiceDetails(request: ServiceRequest): ServiceResult {
     eligibilityStatus = "conditionally_eligible"
     conditions.push("Additional documentation may be required for permanent residents")
   }
-  
+
   if (request.age === "under-18" && ["driving-license", "passport", "kra-pin"].includes(request.service)) {
     if (request.service === "driving-license") {
       eligibilityStatus = "not_eligible"
@@ -403,7 +403,7 @@ export function getServiceDetails(request: ServiceRequest): ServiceResult {
       conditions.push("Parental consent and accompanying documents required for minors")
     }
   }
-  
+
   if (conditions.length === 0) {
     conditions.push("You meet the basic eligibility requirements for this service")
   }
@@ -439,6 +439,7 @@ export function getServiceDetails(request: ServiceRequest): ServiceResult {
       source: "Kenya Government Services Directory 2024",
     },
     limitations: baseData.limitations!,
+    confidenceScore: 1.0
   }
 }
 

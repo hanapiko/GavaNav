@@ -40,7 +40,8 @@ export async function fetchServiceDetails(request: ServiceRequest): Promise<Serv
             language_preference: "en",
             device_type: "desktop",
             timestamp: new Date().toISOString()
-        }
+        },
+        user_query: request.query
     }
 
     try {
@@ -127,6 +128,8 @@ function mapBackendResponseToFrontend(data: any, originalReq: ServiceRequest): S
             factors: expl.rules_applied,
             source: expl.rule_sources[0] || "Government Data"
         },
-        limitations: expl.limitations
+        limitations: expl.limitations,
+        chatResponse: data.chat_response,
+        confidenceScore: data.confidence_score
     }
 }
