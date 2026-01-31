@@ -30,7 +30,7 @@ class ResponseBuilderNode:
             eligibility = state.get("eligibility")
             llm_guide = state.get("llm_guidance") or {}
             
-            # 1. APPLICATION PROCESS (Dynamic based on eligibility)
+            # 1. APPLICATION PROCESS
             office_name = location.primary_office.office_name if location else "the relevant office"
             if eligibility and eligibility.status == "eligible":
                 steps = [
@@ -41,11 +41,11 @@ class ResponseBuilderNode:
                     {"step_number": 5, "instruction": "You will be notified once the document is ready for collection."}
                 ]
             else:
-                steps = [{"step_number": 1, "instruction": "Review the eligibility conditions to see if you can proceed."}]
+                steps = [{"step_number": 1, "instruction": "Review the eligibility conditions."}]
             
             app_process = ApplicationProcess(steps=steps)
 
-            # 2. AI GUIDANCE (Never hardcoded - falls back to reasoning_explanation from state)
+            # 2. AI GUIDANCE
             ai_guidance = AIGuidance(
                 summary_explanation=llm_guide.get("chat_response") or state.get("chat_response") or "Analysis complete.",
                 common_mistakes=llm_guide.get("common_mistakes") or ["General error matching", "Service verify fail"],
@@ -53,7 +53,7 @@ class ResponseBuilderNode:
                 reasoning_explanation=state.get("reasoning_explanation") or "Standard rule-based check applied."
             )
 
-            # 3. DECISION EXPLANATION (Dynamic sources and rules)
+            # 3. DECISION EXPLANATION
             decision_explanation = DecisionExplanation(
                 rule_sources=llm_guide.get("rule_sources") or ["Kenya Government Official Knowledge Base 2024"],
                 rules_applied=llm_guide.get("rules_applied") or [f"Intent Detection: {state.get('intent')}", f"Service Resolution: {sg.service_name if sg else 'N/A'}"],
@@ -62,12 +62,17 @@ class ResponseBuilderNode:
                 validation_logic=state.get("validation_logic", "Internal Logic Check Pass.")
             )
 
-            # 4. CONSTRUCT FINAL RESPONSE
+            # 4. ENHANCE COST NOTES WITH BREAKDOWN
+            if cost and cost.breakdown:
+                breakdown_str = "\nAvailable Tiers: " + ", ".join([f"{k}: KES {v}" for k, v in cost.breakdown.items()])
+                cost.additional_notes += breakdown_str
+
+            # 5. CONSTRUCT FINAL RESPONSE
             final_response = AgentResponse(
                 service_guidance={"service_summary": sg if sg else ServiceSummary(service_name="GavaNav Assistant", service_description="General support and information hub.", responsible_authority="N/A")},
-                location_resolution={"service_location": location if location else ServiceLocation(primary_office=PrimaryOffice(office_name="N/A", county="N/A", address="Not applicable for general queries", walk_in_allowed=True))},
+                location_resolution={"service_location": location if location else ServiceLocation(primary_office=PrimaryOffice(office_name="N/A", county="N/A", address="Not applicable", walk_in_allowed=True))},
                 cost_and_time={
-                    "cost_information": cost or CostInformation(official_fee_kes=0, payment_methods=[], additional_notes="No fee for general consultation"),
+                    "cost_information": cost or CostInformation(official_fee_kes=0, payment_methods=[], additional_notes="Varies"),
                     "processing_time": proc_time or ProcessingTime(estimated_duration_days=0, same_day_available=False, delay_factors=[])
                 },
                 requirements_and_eligibility={
@@ -77,7 +82,7 @@ class ResponseBuilderNode:
                 application_steps={"application_process": app_process},
                 ai_guidance={"ai_guidance": ai_guidance},
                 explainability={"decision_explanation": decision_explanation},
-                follow_up_prompt="Is there anything else I can clarify for you?",
+                follow_up_prompt="Is there anything else I can help with?",
                 chat_response=state.get("chat_response"),
                 confidence_score=state.get("confidence_score") or 1.0
             )

@@ -18,42 +18,48 @@ class LocationResolverNode:
     def __call__(self, state: AgentState) -> Dict[str, Any]:
         if state.get("error"):
             return state
-        print("--- LOCATION RESOLVER ---")
+        print("--- LOCATION SYNC ---")
         input_data = state["input_data"]
         county = input_data.user_profile.county.lower()
+        search_results = state.get("search_results") or []
         
-        # Default fallback
+        # 1. PRIORITY: Check Live Search Results for specific buildings
+        building_found = None
+        for res in search_results:
+            if "operating at" in res.get("content", ""):
+                import re
+                match = re.search(r"operating at (.*?)\.", res["content"])
+                if match:
+                    building_found = match.group(1)
+                    break
+
+        # 2. Check KB for locations
         locations_db = self.kb.get("locations", {})
+        city_key = None
+        for key in locations_db:
+            if key in county or county in key:
+                city_key = key
+                break
         
-        # Try exact match or fallback to Nairobi
-        if county in locations_db:
-            city_key = county
-        elif "nairobi" in county:
-            city_key = "nairobi"
-        elif "mombasa" in county:
-            city_key = "mombasa"
-        elif "kisumu" in county:
-            city_key = "kisumu"
-        else:
-            city_key = "nairobi" # Fallback
+        if not city_key:
+             city_key = "nairobi" # Default logic
             
         area_offices = locations_db.get(city_key, {}).get("huduma", [])
         
         if not area_offices:
-             # DYNAMIC FALLBACK: Instead of just GPO, name it after the user's county
              primary = PrimaryOffice(
-                 office_name=f"Huduma Centre {input_data.user_profile.county.capitalize()}",
+                 office_name=building_found or f"Huduma Centre {input_data.user_profile.county.capitalize()}",
                  county=input_data.user_profile.county.capitalize(),
-                 address="Main Government Plaza / County HQ",
+                 address=building_found or "County Headquarters",
                  walk_in_allowed=True
              )
              alts = []
         else:
             main = area_offices[0]
             primary = PrimaryOffice(
-                office_name=main["name"],
+                office_name=building_found or main["name"],
                 county=city_key.capitalize(),
-                address=main["address"],
+                address=building_found or main["address"],
                 walk_in_allowed=main["walk_in"]
             )
             alts = area_offices[1:]

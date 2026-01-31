@@ -96,25 +96,25 @@ class KnowledgeCheckerNode:
         
         # Cost
         fees_dict = service_data.get("fees", {})
+        breakdown = {k: float(v) for k, v in fees_dict.items() if isinstance(v, (int, float))}
         fee_amount = 0.0
         app_type = input_data.user_profile.application_type
         
         if app_type in fees_dict:
              fee_amount = float(fees_dict[app_type])
-        elif "32_pages" in fees_dict: # Passport default
+        elif "34_pages" in fees_dict: 
+             fee_amount = float(fees_dict["34_pages"])
+        elif "32_pages" in fees_dict:
              fee_amount = float(fees_dict["32_pages"])
-        elif "renewal" in fees_dict and app_type == "renewal":
-             fee_amount = float(fees_dict["renewal"])
         elif "first_time" in fees_dict:
              fee_amount = float(fees_dict["first_time"])
-        else:
-             # Take any funding
-             vals = [v for k,v in fees_dict.items() if isinstance(v, (int, float))]
-             if vals: fee_amount = float(vals[0])
+        elif breakdown:
+             fee_amount = list(breakdown.values())[0]
 
         cost_info = CostInformation(
             official_fee_kes=fee_amount,
             payment_methods=["eCitizen", "Mpesa", "Bank"],
+            breakdown=breakdown,
             additional_notes="Pay via eCitizen (222222)"
         )
 

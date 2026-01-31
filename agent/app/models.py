@@ -54,6 +54,7 @@ class ServiceLocation(BaseModel):
 class CostInformation(BaseModel):
     official_fee_kes: float
     payment_methods: List[str]
+    breakdown: Dict[str, float] = Field(default_factory=dict)
     additional_notes: str
 
 class ProcessingTime(BaseModel):
