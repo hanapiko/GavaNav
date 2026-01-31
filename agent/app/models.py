@@ -11,6 +11,12 @@ class UserProfile(BaseModel):
     citizenship_status: Literal["kenyan_citizen", "resident", "foreign_national"]
     application_type: Literal["first_time", "renewal", "replacement"]
 
+    @validator("citizenship_status", "application_type", pre=True)
+    def to_lowercase(cls, v):
+        if isinstance(v, str):
+            return v.lower()
+        return v
+
 class ServiceRequest(BaseModel):
     # Expanded category list to match frontend and future services
     service_category: str = Field(..., description="Category of the service (e.g., identity, transport, health, civil_registration, etc.)")

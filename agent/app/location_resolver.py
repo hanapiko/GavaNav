@@ -40,11 +40,11 @@ class LocationResolverNode:
         area_offices = locations_db.get(city_key, {}).get("huduma", [])
         
         if not area_offices:
-             # Hardcoded fallback
+             # DYNAMIC FALLBACK: Instead of just GPO, name it after the user's county
              primary = PrimaryOffice(
-                 office_name="Huduma Centre GPO",
-                 county="Nairobi",
-                 address="Teleposta Towers",
+                 office_name=f"Huduma Centre {input_data.user_profile.county.capitalize()}",
+                 county=input_data.user_profile.county.capitalize(),
+                 address="Main Government Plaza / County HQ",
                  walk_in_allowed=True
              )
              alts = []

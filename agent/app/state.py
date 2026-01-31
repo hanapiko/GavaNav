@@ -20,6 +20,7 @@ class AgentState(TypedDict):
     
     # Internal Processing State
     current_step: str
+    intent: Optional[str] # e.g., "service_request" or "general_chat"
     error: Optional[str]
     service_data: Optional[Dict[str, Any]]
     
@@ -39,6 +40,7 @@ class AgentState(TypedDict):
     chat_response: Optional[str]
     confidence_score: Optional[float]
     llm_guidance: Optional[Dict[str, Any]]
+    search_results: Optional[List[Dict[str, Any]]] # Live data from web search
     
     # Final Response
     final_response: Optional[Dict[str, Any]] 

@@ -33,8 +33,32 @@ class ReasoningEngineNode:
             if user_query and len(user_query.strip()) < 4:
                 is_noise = True
             
+            # --- DYNAMIC CONFIDENCE SCORE CALCULATION ---
+            base_conf = 0.5
+            if found_in_kb: base_conf += 0.4
+            if state.get("intent") == "service_request": base_conf += 0.05
+            if user_query and len(user_query) > 20: base_conf += 0.05
+            
+            # Cap at 1.0
+            conf = min(base_conf, 1.0)
+            if is_noise: conf = 0.2
+
             # --- PREPARE DYNAMIC MOCK IF NO LLM ---
             if not self.llm:
+                if state.get("intent") == "general_chat":
+                    return {
+                        "reasoning_explanation": "Conversational intent detected. Providing standard AI persona response.",
+                        "validation_logic": "General chat heuristic applied.",
+                        "chat_response": f"I am GavaNav, your Kenyan Government services assistant. I noticed you asked '{user_query}'. I'm here specifically to help you with things like Passports, IDs, and Marriage certificates. How can I assist you with those today?",
+                        "confidence_score": 1.0,
+                        "llm_guidance": {
+                            "tips": ["Ask about Passport requirements", "Ask about ID replacement fees"],
+                            "common_mistakes": ["Asking non-government related questions"],
+                            "rule_sources": ["GavaNav Assistant Persona"],
+                            "rules_applied": ["Intent: General Chat"]
+                        }
+                    }
+
                 service_name = service_data.get("name", "the requested service") if found_in_kb else "government services"
                 
                 if is_noise:
@@ -52,11 +76,10 @@ class ReasoningEngineNode:
                 if found_in_kb:
                     explanation = f"I've verified the details for {service_name} from the official internal database."
                     chat_resp = f"I've found the official requirements for {service_name}. You'll need to pay KES {state.get('cost_information').official_fee_kes if state.get('cost_information') else 'the standard fee'} and visit a {state.get('location_resolution').primary_office.office_name if state.get('location_resolution') else 'Huduma Centre'}."
-                    conf = 1.0
+                    # Using dynamic confidence
                 else:
                     explanation = "Service not found in primary database. Search based on general knowledge."
                     chat_resp = "I couldn't find a specific match in our rule-set, but I've provided some general guidance based on common Kenyan government procedures."
-                    conf = 0.6
 
                 return {
                     "reasoning_explanation": explanation,
@@ -83,6 +106,7 @@ class ReasoningEngineNode:
                 "user_query": user_query,
                 "found_in_kb": found_in_kb,
                 "service_data": service_data,
+                "search_results": state.get("search_results", []),
                 "eligibility": safe_dump(state.get("eligibility")) if state.get("eligibility") else {},
                 "cost": safe_dump(state.get("cost_information")) if state.get("cost_information") else {},
                 "requirements": [safe_dump(d) for d in state.get("required_documents", [])]
@@ -94,8 +118,10 @@ class ReasoningEngineNode:
                 
                 STRICT GUIDELINES:
                 1. NO GENERIC RESPONSES. Do not use phrases like "I am an AI" or "Standard procedures apply".
-                2. DYNAMIC REASONING: Explain exactly how the user's specific profile (age: {age}, residency: {residency}) and specific query affects the decision.
-                3. TRANSPARENCY: If the service data was found in our Knowledge Base (found_in_kb: {found_in_kb}), mention that the data is verified.
+                2. LIVE DATA PRIORITY: You have been provided with 'search_results' containing live web data. Prioritize this for building names, addresses, and current fees.
+                3. CONVERSATIONAL INTENT: If the intent is "general_chat", answer the user's personal or general question warmly and guide them back to how you can help with government services.
+                4. DYNAMIC REASONING: Explain exactly how residency ({residency}) and query affect requirements.
+                5. TRANSPARENCY: State if data is from "Registry" or "Live Web Analysis".
                 4. TAILORED TIPS: Provide 3 tips that are uniquely relevant to the user's specific sub-situation (e.g. if they are in Nairobi, mention Nairobi-specific centers).
                 5. CONFIDENCE SCORING: 
                    - 0.9-1.0: Found in KB and perfectly matches query.
@@ -105,6 +131,8 @@ class ReasoningEngineNode:
                 Return JSON with keys: 
                 - reasoning_explanation: Step-by-step logic used to reach the conclusion.
                 - validation_logic: The specific rule or KB entry that validates this.
+                - rule_sources: Array of strings (e.g. "Directorate of Immigration Services Website", "Knowledge Base").
+                - rules_applied: Array of strings describing the data-driven checks performed.
                 - tips: Array of 3 specific, actionable tips.
                 - common_mistakes: Array of 2 pitfalls to avoid for THIS specific service.
                 - chat_response: A natural, human-like response addressing the user by their situation (e.g., 'As a resident of {residency}...').
@@ -159,7 +187,7 @@ class ReasoningEngineNode:
                 "reasoning_explanation": f"Rule-based recovery for {service_data.get('name') if found_in_kb else 'unknown service'}.",
                 "validation_logic": "Verified against local Knowledge Base (2024 Edition).",
                 "chat_response": chat_resp,
-                "confidence_score": 0.8 if found_in_kb else 0.4,
+                "confidence_score": conf,
                 "llm_guidance": {
                     "tips": tips,
                     "common_mistakes": mistakes,

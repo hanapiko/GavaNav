@@ -9,14 +9,16 @@ from .requirement_checker import RequirementCheckerNode
 from .guardrail_checker import GuardrailCheckerNode
 from .response_builder import ResponseBuilderNode
 from .reasoning_engine import ReasoningEngineNode
+from .search_engine import WebSearchNode
 
 class GavaNavAgent:
     def __init__(self):
         self.workflow = StateGraph(AgentState)
         
-        # Add nodes (Suffixing with _node to avoid conflict with state keys in LangGraph 0.0.x)
+        # Add nodes
         self.workflow.add_node("guardrail_node", GuardrailCheckerNode())
         self.workflow.add_node("intent_node", IntentClassifierNode())
+        self.workflow.add_node("search_node", WebSearchNode())
         self.workflow.add_node("knowledge_node", KnowledgeCheckerNode())
         self.workflow.add_node("location_node", LocationResolverNode())
         self.workflow.add_node("eligibility_node", EligibilityCheckerNode())
@@ -33,7 +35,13 @@ class GavaNavAgent:
             lambda s: END if s.get("error") else "intent_node"
         )
         
-        self.workflow.add_edge("intent_node", "knowledge_node")
+        # Route based on intent
+        self.workflow.add_conditional_edges(
+            "intent_node",
+            lambda s: "reasoning_node" if s.get("intent") == "general_chat" else "search_node"
+        )
+        
+        self.workflow.add_edge("search_node", "knowledge_node")
         self.workflow.add_edge("knowledge_node", "location_node")
         self.workflow.add_edge("location_node", "eligibility_node")
         self.workflow.add_edge("eligibility_node", "requirement_node")
