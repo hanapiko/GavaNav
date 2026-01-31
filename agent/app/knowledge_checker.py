@@ -24,33 +24,33 @@ class KnowledgeCheckerNode:
 
     def _fuzzy_match_service(self, category: str, name: str, query: Optional[str] = None) -> Optional[Dict[str, Any]]:
         all_services = self.knowledge_base.get("services", {})
-        category_services = all_services.get(category, {})
         
-        name_norm = self._normalize(name)
-        print(f"DEBUG: Matching info - Category: {category}, Name: '{name}', Normalized Name: '{name_norm}'")
-        
-        # 1. Try direct/normalized match in the specified category
-        for key, data in category_services.items():
-            key_norm = self._normalize(key)
-            val_norm = self._normalize(data.get("name", ""))
-            print(f"DEBUG: Checking against Key: '{key}' ({key_norm}), Val: '{data.get('name')}' ({val_norm})")
-            
-            if name_norm in key_norm or key_norm in name_norm or name_norm in val_norm or val_norm in name_norm:
-                print(f"DEBUG: Match FOUND in Category!")
-                return data
-        
-        # 2. If user_query is provided, try matching normalized words
+        # 1. PRIORITY: If user_query is provided, try matching it across ALL categories
         if query:
             q_norm = self._normalize(query)
+            print(f"DEBUG: Matching Query: '{query}' ({q_norm})")
             for cat, svcs in all_services.items():
                 for key, data in svcs.items():
                     key_norm = self._normalize(key)
                     val_norm = self._normalize(data.get("name", ""))
+                    # Check if query contains service key/name or vice versa
                     if key_norm in q_norm or val_norm in q_norm or q_norm in val_norm:
-                        print(f"Match found for query '{query}' in category '{cat}': {data.get('name')}")
+                        print(f"DEBUG: Match FOUND via QUERY in category '{cat}': {data.get('name')}")
                         return data
 
-        # 3. Fallback: Search ALL categories
+        # 2. SECONDARY: Try structured match in the specified category
+        category_services = all_services.get(category, {})
+        name_norm = self._normalize(name)
+        print(f"DEBUG: Matching Dropdown - Category: {category}, Name: '{name}'")
+        
+        for key, data in category_services.items():
+            key_norm = self._normalize(key)
+            val_norm = self._normalize(data.get("name", ""))
+            if name_norm in key_norm or key_norm in name_norm or name_norm in val_norm or val_norm in name_norm:
+                print(f"DEBUG: Match FOUND via DROPDOWN!")
+                return data
+
+        # 3. Fallback: Search ALL categories (if dropdown didn't match and query didn't match)
         for cat, svcs in all_services.items():
             if cat == category: continue
             for key, data in svcs.items():
