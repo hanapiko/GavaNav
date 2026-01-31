@@ -3,10 +3,11 @@
         "identity": {
             "passport": {
                 "name": "Kenyan Passport",
-                "description": "Travel document issued to Kenyan citizens.",
+                "service_type": "immigration",
+                "description": "Travel document issued to Kenyan citizens, including adults and minors.",
                 "authority": "Directorate of Immigration Services",
                 "requirements": {
-                    "new": [
+                    "first_time": [
                         {
                             "name": "Original National ID Card",
                             "mandatory": true,
@@ -25,12 +26,17 @@
                         {
                             "name": "Parents' National ID Cards Copies",
                             "mandatory": true,
-                            "notes": ""
+                            "notes": "For minors"
                         },
                         {
                             "name": "Passport Photos",
                             "mandatory": true,
                             "notes": "taken at application center"
+                        },
+                        {
+                            "name": "Marriage Certificate",
+                            "mandatory": false,
+                            "notes": "For married women changing names"
                         }
                     ],
                     "renewal": [
@@ -83,8 +89,8 @@
                 }
             },
             "national_id": {
-                "name": "National Identity Card",
-                "description": "Primary identification document for Kenyan citizens over 18.",
+                "name": "National Identity Card (Huduma Namba)",
+                "description": "Primary identification document for Kenyan citizens over 18. Also known as Huduma Namba or Maisha Namba.",
                 "authority": "National Registration Bureau",
                 "requirements": {
                     "first_time": [
@@ -98,11 +104,24 @@
                             "mandatory": true,
                             "notes": ""
                         }
+                    ],
+                    "replacement": [
+                        {
+                            "name": "Police Abstract",
+                            "mandatory": true,
+                            "notes": ""
+                        },
+                        {
+                            "name": "Copy of lost ID (if available)",
+                            "mandatory": false,
+                            "notes": ""
+                        }
                     ]
                 },
                 "fees": {
                     "first_time": 0,
-                    "replacement": 100
+                    "replacement": 100,
+                    "renewal": 1000
                 },
                 "processing_time": {
                     "standard_days": 30
@@ -113,6 +132,52 @@
                     ],
                     "min_age": 18
                 }
+            },
+            "birth_certificate": {
+                "name": "Birth Certificate",
+                "description": "Official record of a person's birth.",
+                "authority": "Civil Registration Department",
+                "requirements": {
+                    "new": [
+                        {
+                            "name": "Notification of Birth",
+                            "mandatory": true,
+                            "notes": "From hospital"
+                        },
+                        {
+                            "name": "Parent's IDs",
+                            "mandatory": true,
+                            "notes": ""
+                        }
+                    ],
+                    "late_registration": [
+                        {
+                            "name": "Baptismal Certificate",
+                            "mandatory": false,
+                            "notes": ""
+                        },
+                        {
+                            "name": "School Leaving Certificate",
+                            "mandatory": false,
+                            "notes": ""
+                        }
+                    ]
+                },
+                "fees": {
+                    "new": 50,
+                    "late": 150,
+                    "amendment": 1000
+                },
+                "processing_time": {
+                    "standard_days": 7
+                },
+                "eligibility": {
+                    "citizenship": [
+                        "kenyan_citizen",
+                        "resident"
+                    ],
+                    "min_age": 0
+                }
             }
         },
         "transport": {
@@ -121,6 +186,18 @@
                 "description": "Document authorizing operation of a motor vehicle.",
                 "authority": "NTSA",
                 "requirements": {
+                    "new": [
+                        {
+                            "name": "Provisional Driving License",
+                            "mandatory": true,
+                            "notes": ""
+                        },
+                        {
+                            "name": "Pass Certificate from Driving School",
+                            "mandatory": true,
+                            "notes": ""
+                        }
+                    ],
                     "renewal": [
                         {
                             "name": "Expired Driving License",
@@ -136,7 +213,8 @@
                 },
                 "fees": {
                     "1_year": 600,
-                    "3_years": 1400
+                    "3_years": 1400,
+                    "smart_dl": 3000
                 },
                 "processing_time": {
                     "standard_days": 1
@@ -145,6 +223,156 @@
                     "citizenship": [
                         "kenyan_citizen",
                         "resident"
+                    ],
+                    "min_age": 18
+                }
+            },
+            "vehicle_registration": {
+                "name": "Vehicle Registration (Logbook)",
+                "description": "Process of registering a motor vehicle ownership.",
+                "authority": "NTSA",
+                "requirements": {
+                    "transfer": [
+                        {
+                            "name": "Original Logbook",
+                            "mandatory": true,
+                            "notes": ""
+                        },
+                        {
+                            "name": "Sales Agreement",
+                            "mandatory": true,
+                            "notes": ""
+                        },
+                        {
+                            "name": "KRA PIN of both parties",
+                            "mandatory": true,
+                            "notes": ""
+                        }
+                    ]
+                },
+                "fees": {
+                    "transfer": 2500,
+                    "new_reg": 5000
+                },
+                "processing_time": {
+                    "standard_days": 3
+                },
+                "eligibility": {
+                    "citizenship": [
+                        "kenyan_citizen",
+                        "resident",
+                        "foreign_national"
+                    ],
+                    "min_age": 18
+                }
+            }
+        },
+        "health": {
+            "nhif": {
+                "name": "NHIF (SHIF) Registration",
+                "description": "Social Health Insurance Fund registration for healthcare coverage.",
+                "authority": "Social Health Authority (SHA)",
+                "requirements": {
+                    "new": [
+                        {
+                            "name": "National ID",
+                            "mandatory": true,
+                            "notes": ""
+                        },
+                        {
+                            "name": "Marriage Certificate",
+                            "mandatory": false,
+                            "notes": "For dependents"
+                        },
+                        {
+                            "name": "Passport Photo",
+                            "mandatory": true,
+                            "notes": ""
+                        }
+                    ]
+                },
+                "fees": {
+                    "voluntary": 500,
+                    "salaried": "2.75% of Gross"
+                },
+                "processing_time": {
+                    "standard_days": 1
+                },
+                "eligibility": {
+                    "citizenship": [
+                        "kenyan_citizen",
+                        "resident"
+                    ],
+                    "min_age": 18
+                }
+            }
+        },
+        "tax": {
+            "kra_pin": {
+                "name": "KRA PIN Registration",
+                "description": "Personal Identification Number for tax purposes.",
+                "authority": "Kenya Revenue Authority",
+                "requirements": {
+                    "new": [
+                        {
+                            "name": "National ID",
+                            "mandatory": true,
+                            "notes": ""
+                        }
+                    ]
+                },
+                "fees": {
+                    "new": 0
+                },
+                "processing_time": {
+                    "standard_days": 0
+                },
+                "eligibility": {
+                    "citizenship": [
+                        "kenyan_citizen",
+                        "resident",
+                        "foreign_national"
+                    ],
+                    "min_age": 18
+                }
+            }
+        },
+        "civil_registration": {
+            "marriage_certificate": {
+                "name": "Marriage Certificate",
+                "description": "Legal recognition of a marriage union.",
+                "authority": "Registrar of Marriages",
+                "requirements": {
+                    "civil": [
+                        {
+                            "name": "IDs/Passports of both parties",
+                            "mandatory": true,
+                            "notes": ""
+                        },
+                        {
+                            "name": "Passport Photos",
+                            "mandatory": true,
+                            "notes": ""
+                        },
+                        {
+                            "name": "Copy of IDs of 2 witnesses",
+                            "mandatory": true,
+                            "notes": ""
+                        }
+                    ]
+                },
+                "fees": {
+                    "notice": 600,
+                    "solemnization": 3300
+                },
+                "processing_time": {
+                    "standard_days": 21
+                },
+                "eligibility": {
+                    "citizenship": [
+                        "kenyan_citizen",
+                        "resident",
+                        "foreign_national"
                     ],
                     "min_age": 18
                 }
@@ -165,15 +393,15 @@
                     "walk_in": true
                 },
                 {
-                    "name": "Huduma Centre Kibra",
-                    "address": "Kibra, Nairobi",
+                    "name": "Huduma Centre Makadara",
+                    "address": "Jogoo Road",
                     "walk_in": true
                 }
             ],
             "immigration": [
                 {
                     "name": "Nyayo House",
-                    "address": "Kenyatta Avenue, Nairobi",
+                    "address": "Kenyatta Avenue",
                     "walk_in": false
                 }
             ]
@@ -191,7 +419,57 @@
             "huduma": [
                 {
                     "name": "Huduma Centre Kisumu",
-                    "address": "Prosperity House, Kisumu",
+                    "address": "Prosperity House",
+                    "walk_in": true
+                }
+            ]
+        },
+        "kiambu": {
+            "huduma": [
+                {
+                    "name": "Huduma Centre Kiambu",
+                    "address": "Kiambu Town",
+                    "walk_in": true
+                },
+                {
+                    "name": "Huduma Centre Thika",
+                    "address": "Thika Town",
+                    "walk_in": true
+                }
+            ]
+        },
+        "nakuru": {
+            "huduma": [
+                {
+                    "name": "Huduma Centre Nakuru",
+                    "address": "GPO Building, Nakuru",
+                    "walk_in": true
+                }
+            ]
+        },
+        "uasin gishu": {
+            "huduma": [
+                {
+                    "name": "Huduma Centre Eldoret",
+                    "address": "Eldoret Town",
+                    "walk_in": true
+                }
+            ]
+        },
+        "machakos": {
+            "huduma": [
+                {
+                    "name": "Huduma Centre Machakos",
+                    "address": "Machakos Town",
+                    "walk_in": true
+                }
+            ]
+        },
+        "kajiado": {
+            "huduma": [
+                {
+                    "name": "Huduma Centre Kajiado",
+                    "address": "Kajiado Town",
                     "walk_in": true
                 }
             ]
