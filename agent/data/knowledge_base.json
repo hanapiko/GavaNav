@@ -266,6 +266,33 @@
                     "walk_in": true
                 }
             ]
+        },
+        "mombasa": {
+            "huduma": [
+                {
+                    "name": "Huduma Centre Mombasa",
+                    "address": "GPO Building, Digo Road",
+                    "walk_in": true
+                }
+            ]
+        },
+        "kisumu": {
+            "huduma": [
+                {
+                    "name": "Huduma Centre Kisumu",
+                    "address": "Prosperity House",
+                    "walk_in": true
+                }
+            ]
+        },
+        "nakuru": {
+            "huduma": [
+                {
+                    "name": "Huduma Centre Nakuru",
+                    "address": "Posta House",
+                    "walk_in": true
+                }
+            ]
         }
     }
 }
