@@ -76,21 +76,19 @@ export function ServiceResults({ result, onReset }: ServiceResultsProps) {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
-        <div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onReset}
-            className="mb-2 -ml-2 gap-1 text-muted-foreground hover:text-foreground"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            New Search
-          </Button>
+        <div className="flex-1">
           <h2 className="text-2xl font-semibold tracking-tight text-foreground">
             {result.serviceName}
           </h2>
           <p className="text-muted-foreground">{result.county} County</p>
         </div>
+        <Button
+          onClick={onReset}
+          className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90 shadow-md"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          New Search
+        </Button>
       </div>
 
       {/* Eligibility Status */}
