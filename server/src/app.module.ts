@@ -4,6 +4,8 @@ import { PrismaModule } from "./prisma/prisma.module";
 import { GeminiModule } from "./gemini/gemini.module";
 import { GeminiService } from "./gemini/gemini.service";
 import { ConfigModule } from "@nestjs/config";
+import { GrokController } from './grok/grok.controller';
+import { GrokModule } from './grok/grok.module';
 
 @Module({
   imports: [
@@ -13,7 +15,9 @@ import { ConfigModule } from "@nestjs/config";
     ConfigModule.forRoot({
         isGlobal: true,
     }),
+    GrokModule,
     ],
   providers: [GeminiService],
+  controllers: [GrokController],
 })
 export class AppModule {}
