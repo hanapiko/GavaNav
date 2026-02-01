@@ -2,5 +2,17 @@ import { IsString } from "class-validator";
 
 export class CreatePromptDto {
   @IsString()
-  message: string;
+  county: string;
+
+  @IsString()
+  service: string;
+
+  @IsString()
+  age: string;
+
+  @IsString()
+  residency: string;
+
+  @IsString()
+  applicationType: string;
 }
